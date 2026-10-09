@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Muhit o'zgaruvchilari (maxfiy ma'lumotlar)
+.env
+
+# Virtual muhit
+.venv/
+venv/
+env/
+ENV/
+
+# Muharrir va tizim fayllari
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
