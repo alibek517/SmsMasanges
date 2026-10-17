@@ -31,6 +31,10 @@ class SMSService:
 
     def is_configured(self) -> bool:
         """Real SMS shlyuzi sozlanganmi?"""
+        if self.gateway_type == "android" and self.gateway_url:
+            return True
+        if self.gateway_url and (":8080" in self.gateway_url or "192.168." in self.gateway_url or "10." in self.gateway_url):
+            return True
         if self.gateway_token:
             return True
         if self.gateway_url and (self.gateway_login and self.gateway_password):

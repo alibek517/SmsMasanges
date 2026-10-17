@@ -679,76 +679,35 @@ def generate_template_excel() -> bytes:
 @st.dialog("SMS Gateway Sozlamalari", width="large")
 def sms_settings_modal():
     st.markdown(f"""
-    Telefoningizdagi **`{sms_service.sender_number}`** SIM kartadan real SMS jo'natish uchun quyidagi sozlamalarni kiriting:
+    Telefoningizdagi **`{sms_service.sender_number}`** SIM kartadan real SMS jo'natish uchun quyidagi sozlamani kiriting:
     """)
     
-    sender_in = st.text_input("Yuboruvchi SIM karta telefon raqami:", value=sms_service.sender_number, placeholder="+998937078047")
+    sender_in = st.text_input("Yuboruvchi SIM karta telefon raqami:", value=sms_service.sender_number, placeholder="+998937078047", help="Telefondagi yuboruvchi SIM kartangiz raqami")
     
-    tab_infini, tab_local, tab_eskiz = st.tabs(["InfiniReach (Siz ulagan)", "Lokal IP Gateway", "Eskiz.uz API"])
+    local_url = st.text_input(
+        "Telefondagi Shlyuz Manzili (Lokal Gateway URL):", 
+        value=sms_service.gateway_url if sms_service.gateway_url else "http://192.168.1.66:8080", 
+        placeholder="http://192.168.1.66:8080",
+        help="Telefondagi 'Local SMS Gateway' ilovasining yuqori qismida ko'rsatilgan IP manzilni kiriting"
+    )
     
-    with tab_infini:
-        st.markdown("""
-        **Siz telefoningizni InfiniReach-ga muvaffaqiyatli uladingiz!**  
-        Endi shunchaki brauzeringizdagi **InfiniReach** oynasidan API kalitini oling:
-        1. Chap menyudan **`Integrations`** (yoki **`Settings`**) bo'limiga bosing.
-        2. **API Key** (yoki *Create / Generate API Key*) ni ko'chirib oling (Copy).
-        3. Quyidagi katakka joylang va **Saqlash** tugmasini bosing:
-        """)
-        
-        inf_key = st.text_input("InfiniReach API Key / Token:", value=sms_service.gateway_token or "", type="password", placeholder="Masalan: ir_live_... yoki token...")
-        
-        if st.button("InfiniReach Sozlamasini Saqlash", icon=FLATICON["save"], key="btn_save_infini", type="primary", use_container_width=True):
-            if inf_key.strip():
-                sms_service.save_config(
-                    gateway_type="infinireach",
-                    url="https://api.infinireach.io",
-                    token=inf_key.strip(),
-                    sender_number=sender_in.strip() if sender_in.strip() else None
-                )
-                st.success("InfiniReach sozlamalari saqlandi! Endi bemalol SMS yuborishingiz mumkin.")
-                st.rerun()
-            else:
-                st.error("Iltimos, InfiniReach API Key-ni kiriting!")
-
-    with tab_local:
-        st.markdown("""
-        **Lokal Wi-Fi orqali to'g'ridan-to'g'ri ulash:**  
-        Agar telefonda InfiniReach o'rniga lokal IP ko'rsatilgan bo'lsa (masalan `http://192.168.1.50:8080`), uni kiriting:
-        """)
-        local_url = st.text_input("Lokal Gateway URL:", value=sms_service.gateway_url if "192.168" in sms_service.gateway_url else "", placeholder="http://192.168.1.50:8080")
-        local_user = st.text_input("Lokal Login (ixtiyoriy):", value=sms_service.gateway_login)
-        local_pass = st.text_input("Lokal Parol (ixtiyoriy):", value=sms_service.gateway_password, type="password")
-        
-        if st.button("Lokal Sozlamalarni Saqlash", icon=FLATICON["save"], key="btn_save_local", type="primary", use_container_width=True):
-            if local_url.strip():
-                sms_service.save_config(
-                    gateway_type="android",
-                    url=local_url.strip(),
-                    login=local_user.strip(),
-                    password=local_pass.strip()
-                )
-                st.success("Lokal Gateway sozlamalari saqlandi!")
-                st.rerun()
-            else:
-                st.error("Lokal URL manzilini kiriting!")
-
-    with tab_eskiz:
-        st.markdown("**Eskiz.uz servisi orqali jo'natish:**")
-        esk_email = st.text_input("Eskiz Email / Login:", value=sms_service.gateway_login if "@" in sms_service.gateway_login else "")
-        esk_pass = st.text_input("Eskiz Parol:", type="password")
-        
-        if st.button("Eskiz-ni Saqlash", icon=FLATICON["save"], key="btn_save_eskiz", type="primary", use_container_width=True):
-            if esk_email.strip() and esk_pass.strip():
-                sms_service.save_config(
-                    gateway_type="eskiz",
-                    url="https://notify.eskiz.uz",
-                    login=esk_email.strip(),
-                    password=esk_pass.strip()
-                )
-                st.success("Eskiz sozlamalari saqlandi!")
-                st.rerun()
-            else:
-                st.error("Email va parolni to'ldiring!")
+    st.markdown("""
+    <div style="background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:10px 14px; font-size:0.88rem; margin:10px 0 16px 0;">
+        💡 <b>Qanday ishlaydi?</b> Telefoningizdagi <b>Local SMS Gateway</b> ilovasini ochib, yashil <b>«▶ Serverni Ishga Tushirish»</b> tugmasini bosing. Ilova tepasida chiqqan manzilni (masalan: <code>http://192.168.1.66:8080</code>) yuqoriga yozib, <b>«Saqlash»</b> tugmasini bosing.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Sozlamalarni Saqlash", icon=FLATICON["save"], key="btn_save_local", type="primary", use_container_width=True):
+        if local_url.strip():
+            sms_service.save_config(
+                gateway_type="android",
+                url=local_url.strip(),
+                sender_number=sender_in.strip() if sender_in.strip() else None
+            )
+            st.success("✅ Lokal SMS Gateway sozlamalari muvaffaqiyatli saqlandi!")
+            st.rerun()
+        else:
+            st.error("Iltimos, telefondagi shlyuz manzilini (URL) kiriting!")
 
 
 # 2. SMS YUBORISH MODAL
